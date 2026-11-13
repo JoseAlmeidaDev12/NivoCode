@@ -1,0 +1,10 @@
+
+.idea/
+*.iml
+**/target/
+**/.gradle/
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
