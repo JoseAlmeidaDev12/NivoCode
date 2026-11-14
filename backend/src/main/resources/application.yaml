@@ -3,7 +3,7 @@ spring:
   application:
     name: nivocode
   datasource:
-    url: jdbc:postgresql://localhost:5432/nivocode
+    url: jdbc:postgresql://127.0.0.1:5432/nivocode
     username: nivocode
     password: ${DB_PASSWORD}
   jpa:
