@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/customers")
@@ -27,13 +28,36 @@ public class CustomerController {
                 .toList();
     }
 
+    @GetMapping("/{id}")
+    public CustomerResponse findById(@PathVariable UUID id) {
+        return CustomerResponse.fromEntity(
+                customerService.findById(id)
+        );
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CustomerResponse create(
             @Valid @RequestBody CustomerRequest request
     ) {
-        Customer customer = customerService.create(request);
+        return CustomerResponse.fromEntity(
+                customerService.create(request)
+        );
+    }
 
-        return CustomerResponse.fromEntity(customer);
+    @PutMapping("/{id}")
+    public CustomerResponse update(
+            @PathVariable UUID id,
+            @Valid @RequestBody CustomerRequest request
+    ) {
+        return CustomerResponse.fromEntity(
+                customerService.update(id, request)
+        );
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deactivate(@PathVariable UUID id) {
+        customerService.deactivate(id);
     }
 }

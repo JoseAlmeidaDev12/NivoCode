@@ -2,6 +2,7 @@
 package com.nivocode.customer;
 
 import com.nivocode.common.exception.ResourceConflictException;
+import com.nivocode.common.exception.ResourceNotFoundException;
 import com.nivocode.common.security.CurrentTenantProvider;
 import com.nivocode.company.Company;
 import com.nivocode.company.CompanyRepository;
@@ -37,6 +38,19 @@ public class CustomerService {
                 .findAllByCompany_IdAndActiveTrue(companyId);
     }
 
+    @Transactional(readOnly = true)
+    public Customer findById(UUID customerId) {
+        UUID companyId = currentTenantProvider.getCompanyId();
+
+        return customerRepository
+                .findByIdAndCompany_IdAndActiveTrue(
+                        customerId, companyId
+                )
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Customer not found"
+                ));
+    }
+
     @Transactional
     public Customer create(CustomerRequest request) {
         UUID companyId = currentTenantProvider.getCompanyId();
@@ -49,10 +63,8 @@ public class CustomerService {
 
         if (document != null &&
                 customerRepository.existsByCompany_IdAndDocument(
-                        companyId,
-                        document
+                        companyId, document
                 )) {
-
             throw new ResourceConflictException(
                     "Customer document already exists in this company"
             );
@@ -64,15 +76,61 @@ public class CustomerService {
                 ));
 
         Customer customer = new Customer(
-                company,
-                name,
-                email,
-                phone,
-                document,
-                address
+                company, name, email, phone, document, address
         );
 
         return customerRepository.save(customer);
+    }
+
+    @Transactional
+    public Customer update(UUID customerId, CustomerRequest request) {
+        UUID companyId = currentTenantProvider.getCompanyId();
+
+        Customer customer = customerRepository
+                .findByIdAndCompany_IdAndActiveTrue(
+                        customerId, companyId
+                )
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Customer not found"
+                ));
+
+        String name = request.name().trim();
+        String email = normalizeOptional(request.email());
+        String phone = normalizeOptional(request.phone());
+        String document = normalizeOptional(request.document());
+        String address = normalizeOptional(request.address());
+
+        if (document != null
+                && !document.equals(customer.getDocument())
+                && customerRepository.existsByCompany_IdAndDocument(
+                companyId, document
+        )) {
+            throw new ResourceConflictException(
+                    "Customer document already exists in this company"
+            );
+        }
+
+        customer.updateDetails(
+                name, email, phone, document, address
+        );
+
+        return customerRepository.save(customer);
+    }
+
+    @Transactional
+    public void deactivate(UUID customerId) {
+        UUID companyId = currentTenantProvider.getCompanyId();
+
+        Customer customer = customerRepository
+                .findByIdAndCompany_IdAndActiveTrue(
+                        customerId, companyId
+                )
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Customer not found"
+                ));
+
+        customer.deactivate();
+        customerRepository.save(customer);
     }
 
     private String normalizeOptional(String value) {

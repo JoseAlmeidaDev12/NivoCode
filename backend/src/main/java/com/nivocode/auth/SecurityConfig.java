@@ -15,7 +15,9 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+            throws Exception {
+
         return http
                 .csrf(csrf -> csrf.ignoringRequestMatchers(
                         "/api/auth/register",
@@ -26,35 +28,49 @@ public class SecurityConfig {
                         "/api/customers/**"
                 ))
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        .sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        ))
                 .authorizeHttpRequests(auth -> auth
-                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+                        .dispatcherTypeMatchers(
+                                DispatcherType.ERROR
+                        ).permitAll()
+
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/auth/register",
                                 "/api/auth/login"
                         ).permitAll()
+
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/auth/me",
                                 "/api/products",
                                 "/api/products/{id}",
-                                "/api/customers"
+                                "/api/customers",
+                                "/api/customers/{id}"
                         ).authenticated()
+
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/products",
                                 "/api/customers"
                         ).authenticated()
+
                         .requestMatchers(
                                 HttpMethod.PUT,
-                                "/api/products/{id}"
+                                "/api/products/{id}",
+                                "/api/customers/{id}"
                         ).authenticated()
+
                         .requestMatchers(
                                 HttpMethod.DELETE,
-                                "/api/products/{id}"
+                                "/api/products/{id}",
+                                "/api/customers/{id}"
                         ).authenticated()
-                        .anyRequest().denyAll())
+
+                        .anyRequest().denyAll()
+                )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(Customizer.withDefaults()))
                 .httpBasic(AbstractHttpConfigurer::disable)
