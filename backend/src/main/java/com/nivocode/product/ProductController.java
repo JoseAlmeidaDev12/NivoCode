@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/products")
@@ -25,6 +26,13 @@ public class ProductController {
                 .stream()
                 .map(ProductResponse::fromEntity)
                 .toList();
+    }
+
+    @GetMapping("/{id}")
+    public ProductResponse findById(@PathVariable UUID id) {
+        Product product = productService.findById(id);
+
+        return ProductResponse.fromEntity(product);
     }
 
     @PostMapping

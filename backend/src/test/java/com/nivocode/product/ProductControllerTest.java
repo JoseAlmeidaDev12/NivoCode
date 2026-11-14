@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -35,6 +36,9 @@ class ProductControllerTest {
 
     @Autowired
     private CompanyRepository companyRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
 
     private MockMvc mockMvc;
 
@@ -142,7 +146,6 @@ class ProductControllerTest {
     @Test
     @Transactional
     void shouldIsolateProductsBetweenCompanies() throws Exception {
-
         Company companyA = companyRepository.save(
                 new Company(
                         "Company A",
@@ -160,7 +163,6 @@ class ProductControllerTest {
         UUID companyAId = companyA.getId();
         UUID companyBId = companyB.getId();
 
-        // Create a product belonging to Company A
         mockMvc.perform(post("/api/products")
                         .with(jwt().jwt(token -> token
                                 .subject(UUID.randomUUID().toString())
@@ -178,7 +180,6 @@ class ProductControllerTest {
                                 """))
                 .andExpect(status().isCreated());
 
-        // Create a product belonging to Company B
         mockMvc.perform(post("/api/products")
                         .with(jwt().jwt(token -> token
                                 .subject(UUID.randomUUID().toString())
@@ -196,7 +197,6 @@ class ProductControllerTest {
                                 """))
                 .andExpect(status().isCreated());
 
-        // Company A must see only its own product
         mockMvc.perform(get("/api/products")
                         .with(jwt().jwt(token -> token
                                 .subject(UUID.randomUUID().toString())
@@ -208,7 +208,6 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$[0].name")
                         .value("Notebook Company A"));
 
-        // Company B must see only its own product
         mockMvc.perform(get("/api/products")
                         .with(jwt().jwt(token -> token
                                 .subject(UUID.randomUUID().toString())
@@ -219,5 +218,82 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].name")
                         .value("Monitor Company B"));
+    }
+
+    @Test
+    void shouldRejectProductSearchWithoutJwt() throws Exception {
+        UUID productId = UUID.randomUUID();
+
+        mockMvc.perform(get("/api/products/{id}", productId))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @Transactional
+    void shouldFindProductOnlyForOwningCompany() throws Exception {
+        Company companyA = companyRepository.save(
+                new Company(
+                        "Company A Search",
+                        "company-a-search-" + UUID.randomUUID()
+                )
+        );
+
+        Company companyB = companyRepository.save(
+                new Company(
+                        "Company B Search",
+                        "company-b-search-" + UUID.randomUUID()
+                )
+        );
+
+        Product product = productRepository.save(
+                new Product(
+                        companyA,
+                        "Notebook Dell",
+                        "DELL-001",
+                        "Notebook for Company A",
+                        new BigDecimal("3500.00"),
+                        5
+                )
+        );
+
+        UUID productId = product.getId();
+
+        // Company A can access its own product
+        mockMvc.perform(get("/api/products/{id}", productId)
+                        .with(jwt().jwt(token -> token
+                                .subject(UUID.randomUUID().toString())
+                                .claim("companyId",
+                                        companyA.getId().toString())
+                                .claim("role", "ADMIN")
+                        )))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id")
+                        .value(productId.toString()))
+                .andExpect(jsonPath("$.name")
+                        .value("Notebook Dell"));
+
+        // Company B cannot access Company A's product
+        mockMvc.perform(get("/api/products/{id}", productId)
+                        .with(jwt().jwt(token -> token
+                                .subject(UUID.randomUUID().toString())
+                                .claim("companyId",
+                                        companyB.getId().toString())
+                                .claim("role", "ADMIN")
+                        )))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.detail")
+                        .value("Product not found"));
+
+        // A nonexistent product must also return 404
+        mockMvc.perform(get("/api/products/{id}", UUID.randomUUID())
+                        .with(jwt().jwt(token -> token
+                                .subject(UUID.randomUUID().toString())
+                                .claim("companyId",
+                                        companyA.getId().toString())
+                                .claim("role", "ADMIN")
+                        )))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.detail")
+                        .value("Product not found"));
     }
 }

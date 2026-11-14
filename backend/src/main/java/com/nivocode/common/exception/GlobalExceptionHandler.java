@@ -51,4 +51,18 @@ public class GlobalExceptionHandler {
 
         return problem;
     }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ProblemDetail handleResourceNotFound(
+            ResourceNotFoundException exception) {
+
+        ProblemDetail problem = ProblemDetail.forStatus(
+                HttpStatus.NOT_FOUND
+        );
+
+        problem.setTitle("Resource not found");
+        problem.setDetail(exception.getMessage());
+
+        return problem;
+    }
 }

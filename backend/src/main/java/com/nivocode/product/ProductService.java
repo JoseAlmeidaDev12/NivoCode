@@ -2,6 +2,7 @@
 package com.nivocode.product;
 
 import com.nivocode.common.exception.ResourceConflictException;
+import com.nivocode.common.exception.ResourceNotFoundException;
 import com.nivocode.common.security.CurrentTenantProvider;
 import com.nivocode.company.Company;
 import com.nivocode.company.CompanyRepository;
@@ -34,6 +35,17 @@ public class ProductService {
         UUID companyId = currentTenantProvider.getCompanyId();
 
         return productRepository.findAllByCompany_Id(companyId);
+    }
+
+    @Transactional(readOnly = true)
+    public Product findById(UUID productId) {
+        UUID companyId = currentTenantProvider.getCompanyId();
+
+        return productRepository
+                .findByIdAndCompany_Id(productId, companyId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Product not found"
+                ));
     }
 
     @Transactional
