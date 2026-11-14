@@ -77,4 +77,36 @@ public class ProductService {
 
         return productRepository.save(product);
     }
+
+    @Transactional
+    public Product update(UUID productId, ProductRequest request) {
+        UUID companyId = currentTenantProvider.getCompanyId();
+
+        Product product = productRepository
+                .findByIdAndCompany_Id(productId, companyId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Product not found"
+                ));
+
+        String name = request.name().trim();
+        String sku = request.sku().trim();
+
+        if (!product.getSku().equals(sku)
+                && productRepository.existsByCompany_IdAndSku(companyId, sku)) {
+
+            throw new ResourceConflictException(
+                    "Product SKU already exists in this company"
+            );
+        }
+
+        product.updateDetails(
+                name,
+                sku,
+                request.description(),
+                request.price(),
+                request.stockQuantity()
+        );
+
+        return productRepository.save(product);
+    }
 }

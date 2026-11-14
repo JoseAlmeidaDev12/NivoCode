@@ -44,4 +44,14 @@ public class ProductController {
 
         return ProductResponse.fromEntity(product);
     }
+
+    @PutMapping("/{id}")
+    public ProductResponse update(
+            @PathVariable UUID id,
+            @Valid @RequestBody ProductRequest request
+    ) {
+        Product product = productService.update(id, request);
+
+        return ProductResponse.fromEntity(product);
+    }
 }

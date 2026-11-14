@@ -56,6 +56,20 @@ public class Product {
         this.stockQuantity = stockQuantity;
     }
 
+    public void updateDetails(
+            String name,
+            String sku,
+            String description,
+            BigDecimal price,
+            Integer stockQuantity
+    ) {
+        this.name = name;
+        this.sku = sku;
+        this.description = description;
+        this.price = price;
+        this.stockQuantity = stockQuantity;
+    }
+
     public UUID getId() {
         return id;
     }
