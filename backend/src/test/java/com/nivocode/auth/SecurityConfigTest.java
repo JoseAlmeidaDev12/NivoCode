@@ -35,9 +35,9 @@ class SecurityConfigTest {
     }
 
     @Test
-    void shouldBlockAccessToProtectedEndpoints() throws Exception {
+    void shouldRejectUnauthenticatedAccess() throws Exception {
         mockMvc.perform(get("/actuator/health"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
