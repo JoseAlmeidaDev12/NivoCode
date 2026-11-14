@@ -19,7 +19,8 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.ignoringRequestMatchers(
                         "/api/auth/register",
-                        "/api/auth/login"
+                        "/api/auth/login",
+                        "/api/products"
                 ))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -32,7 +33,12 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.GET,
-                                "/api/auth/me"
+                                "/api/auth/me",
+                                "/api/products"
+                        ).authenticated()
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/products"
                         ).authenticated()
                         .anyRequest().denyAll())
                 .oauth2ResourceServer(oauth2 -> oauth2
