@@ -34,7 +34,8 @@ public class ProductService {
     public List<Product> findAll() {
         UUID companyId = currentTenantProvider.getCompanyId();
 
-        return productRepository.findAllByCompany_Id(companyId);
+        return productRepository
+                .findAllByCompany_IdAndActiveTrue(companyId);
     }
 
     @Transactional(readOnly = true)
@@ -42,7 +43,7 @@ public class ProductService {
         UUID companyId = currentTenantProvider.getCompanyId();
 
         return productRepository
-                .findByIdAndCompany_Id(productId, companyId)
+                .findByIdAndCompany_IdAndActiveTrue(productId, companyId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Product not found"
                 ));
@@ -83,7 +84,7 @@ public class ProductService {
         UUID companyId = currentTenantProvider.getCompanyId();
 
         Product product = productRepository
-                .findByIdAndCompany_Id(productId, companyId)
+                .findByIdAndCompany_IdAndActiveTrue(productId, companyId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Product not found"
                 ));
@@ -108,5 +109,20 @@ public class ProductService {
         );
 
         return productRepository.save(product);
+    }
+
+    @Transactional
+    public void deactivate(UUID productId) {
+        UUID companyId = currentTenantProvider.getCompanyId();
+
+        Product product = productRepository
+                .findByIdAndCompany_IdAndActiveTrue(productId, companyId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Product not found"
+                ));
+
+        product.deactivate();
+
+        productRepository.save(product);
     }
 }

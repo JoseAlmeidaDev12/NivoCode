@@ -43,7 +43,7 @@ class ProductServiceTest {
         when(currentTenantProvider.getCompanyId())
                 .thenReturn(companyId);
 
-        when(productRepository.findAllByCompany_Id(companyId))
+        when(productRepository.findAllByCompany_IdAndActiveTrue(companyId))
                 .thenReturn(List.of());
 
         List<Product> products = productService.findAll();
@@ -51,7 +51,9 @@ class ProductServiceTest {
         assertEquals(0, products.size());
 
         verify(currentTenantProvider).getCompanyId();
-        verify(productRepository).findAllByCompany_Id(companyId);
+
+        verify(productRepository)
+                .findAllByCompany_IdAndActiveTrue(companyId);
     }
 
     @Test

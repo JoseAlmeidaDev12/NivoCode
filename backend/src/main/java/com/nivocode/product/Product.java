@@ -70,6 +70,10 @@ public class Product {
         this.stockQuantity = stockQuantity;
     }
 
+    public void deactivate() {
+        this.active = false;
+    }
+
     public UUID getId() {
         return id;
     }

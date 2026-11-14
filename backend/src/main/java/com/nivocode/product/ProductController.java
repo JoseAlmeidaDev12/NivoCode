@@ -54,4 +54,10 @@ public class ProductController {
 
         return ProductResponse.fromEntity(product);
     }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deactivate(@PathVariable UUID id) {
+        productService.deactivate(id);
+    }
 }

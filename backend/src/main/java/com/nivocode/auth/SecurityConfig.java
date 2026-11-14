@@ -46,6 +46,10 @@ public class SecurityConfig {
                                 HttpMethod.PUT,
                                 "/api/products/{id}"
                         ).authenticated()
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/products/{id}"
+                        ).authenticated()
                         .anyRequest().denyAll())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(Customizer.withDefaults()))

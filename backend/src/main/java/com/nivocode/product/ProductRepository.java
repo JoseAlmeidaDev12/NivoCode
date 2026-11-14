@@ -20,4 +20,13 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
             UUID companyId,
             String sku
     );
+
+    List<Product> findAllByCompany_IdAndActiveTrue(
+            UUID companyId
+    );
+
+    Optional<Product> findByIdAndCompany_IdAndActiveTrue(
+            UUID productId,
+            UUID companyId
+    );
 }
