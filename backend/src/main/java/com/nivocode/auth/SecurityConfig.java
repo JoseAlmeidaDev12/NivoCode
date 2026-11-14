@@ -21,7 +21,9 @@ public class SecurityConfig {
                         "/api/auth/register",
                         "/api/auth/login",
                         "/api/products",
-                        "/api/products/**"
+                        "/api/products/**",
+                        "/api/customers",
+                        "/api/customers/**"
                 ))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -36,11 +38,13 @@ public class SecurityConfig {
                                 HttpMethod.GET,
                                 "/api/auth/me",
                                 "/api/products",
-                                "/api/products/{id}"
+                                "/api/products/{id}",
+                                "/api/customers"
                         ).authenticated()
                         .requestMatchers(
                                 HttpMethod.POST,
-                                "/api/products"
+                                "/api/products",
+                                "/api/customers"
                         ).authenticated()
                         .requestMatchers(
                                 HttpMethod.PUT,
